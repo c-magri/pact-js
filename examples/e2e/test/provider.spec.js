@@ -14,50 +14,35 @@ server.listen(8081, () => {
 describe("Pact Verification", () => {
   it("validates the expectations of Matching Service", () => {
     let token = "INVALID TOKEN"
-    let chunks = []
+
     let opts = {
       provider: "Animal Profile Service",
       // logLevel: "DEBUG",
       providerBaseUrl: "http://localhost:8081",
 
       requestFilter: (req, res, next) => {
-        // console.log(
-        //   "Middleware invoked before provider API - injecting Authorization token"
-        // )
-        // req.headers["MY_SPECIAL_HEADER"] = "my special value"
-        // console.log("req.bodyyyyyyyyyyyyyyyyyyyyyy", req.body)
-        // if (req.body && req.body.state == "animal state") {
-        // req.headers["authorization"] = `Bearer ${token}`
-        // req.body = JSON.stringify({
-        //   first_name: "dog"
-        // });
-        // next();
-        if (req.path === "/animals") {
-          req.on("data", function(chunk) {
-            chunks.push(chunk)
-          })
-          req.on("end", function() {
-            // Request upload complete, convert to a string and parse into JSON
-            // req.body = JSON.parse(Buffer.concat(chunks).toString())
-            req.body.first_name = "dog"
-            // req.body = JSON.stringify(req.body);
-            // req.body is now JSON, manipulate as needed
-            console.log("Body as JSONNNNNNNNNNNNNNN:", req.body)
-            next()
-          })
-        }
-        next();
+        console.log(
+          "Middleware invoked before provider API - injecting Authorization token"
+        )
+        req.headers["MY_SPECIAL_HEADER"] = "my special value"
+        console.log("req.body", req.body);
+        //if (req.body && req.body.state == "animal state") {
+          req.body = {
+            first_name: "dog"
+          };
+        // }
 
-        // // e.g. ADD Bearer token
-        // next()
+        // e.g. ADD Bearer token
+        req.headers["authorization"] = `Bearer ${token}`
+        next()
       },
 
       stateHandlers: {
         "animal state": () => {
           animalRepository.clear()
           token = "1234"
-          Promise.resolve()
-        },
+          Promise.resolve();
+        }
       },
 
       // Fetch pacts from broker
