@@ -17,13 +17,14 @@ server.use((req, res, next) => {
 })
 
 server.use((req, res, next) => {
-  const token = req.headers["authorization"] || ""
+  next();
+  // const token = req.headers["authorization"] || ""
 
-  if (token !== "Bearer 1234") {
-    res.sendStatus(401).send()
-  } else {
-    next()
-  }
+  // if (token !== "Bearer 1234") {
+  //   res.sendStatus(401).send()
+  // } else {
+  //   next()
+  // }
 })
 
 const animalRepository = new Repository()
@@ -69,7 +70,16 @@ server.get("/animals/:id", (req, res) => {
 // Register a new Animal for the service
 server.post("/animals", (req, res) => {
   const animal = req.body
-
+  if(animal.first_name !== "dog") {
+    res.writeHead(403);
+    res.end();
+    return;
+  }
+  else {
+    res.json({
+      "OK": true
+    })
+  }
   // Really basic validation
   if (!animal || !animal.first_name) {
     res.writeHead(400)

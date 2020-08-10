@@ -14,42 +14,49 @@ server.listen(8081, () => {
 describe("Pact Verification", () => {
   it("validates the expectations of Matching Service", () => {
     let token = "INVALID TOKEN"
-
+    let chunks = []
     let opts = {
       provider: "Animal Profile Service",
-      logLevel: "DEBUG",
+      // logLevel: "DEBUG",
       providerBaseUrl: "http://localhost:8081",
 
       requestFilter: (req, res, next) => {
-        console.log(
-          "Middleware invoked before provider API - injecting Authorization token"
-        )
-        req.headers["MY_SPECIAL_HEADER"] = "my special value"
+        // console.log(
+        //   "Middleware invoked before provider API - injecting Authorization token"
+        // )
+        // req.headers["MY_SPECIAL_HEADER"] = "my special value"
+        // console.log("req.bodyyyyyyyyyyyyyyyyyyyyyy", req.body)
+        // if (req.body && req.body.state == "animal state") {
+        // req.headers["authorization"] = `Bearer ${token}`
+        // req.body = JSON.stringify({
+        //   first_name: "dog"
+        // });
+        // next();
+        if (req.path === "/animals") {
+          req.on("data", function(chunk) {
+            chunks.push(chunk)
+          })
+          req.on("end", function() {
+            // Request upload complete, convert to a string and parse into JSON
+            // req.body = JSON.parse(Buffer.concat(chunks).toString())
+            req.body.first_name = "dog"
+            // req.body = JSON.stringify(req.body);
+            // req.body is now JSON, manipulate as needed
+            console.log("Body as JSONNNNNNNNNNNNNNN:", req.body)
+            next()
+          })
+        }
+        next();
 
-        // e.g. ADD Bearer token
-        req.headers["authorization"] = `Bearer ${token}`
-        next()
+        // // e.g. ADD Bearer token
+        // next()
       },
 
       stateHandlers: {
-        "Has no animals": () => {
+        "animal state": () => {
           animalRepository.clear()
           token = "1234"
-          return Promise.resolve(`Animals removed to the db`)
-        },
-        "Has some animals": () => {
-          token = "1234"
-          importData()
-          return Promise.resolve(`Animals added to the db`)
-        },
-        "Has an animal with ID 1": () => {
-          token = "1234"
-          importData()
-          return Promise.resolve(`Animals added to the db`)
-        },
-        "is not authenticated": () => {
-          token = ""
-          Promise.resolve(`Invalid bearer token generated`)
+          Promise.resolve()
         },
       },
 
@@ -57,7 +64,7 @@ describe("Pact Verification", () => {
       pactBrokerUrl: "https://test.pact.dius.com.au/",
 
       // Fetch from broker with given tags
-      consumerVersionTag: ["prod"],
+      consumerVersionTag: ["test"],
 
       // Tag provider with given tags
       providerVersionTag: ["prod"],
@@ -70,7 +77,7 @@ describe("Pact Verification", () => {
       // ],
 
       // Enables "pending pacts" feature
-      enablePending: true,
+      enablePending: false,
 
       // Specific Remote pacts (doesn't need to be a broker)
       // pactUrls: ['https://test.pact.dius.com.au/pacts/provider/Animal%20Profile%20Service/consumer/Matching%20Service/latest'],
